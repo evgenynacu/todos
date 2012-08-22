@@ -12,8 +12,6 @@ import ru.nacu.todos.App;
 import ru.nacu.todos.Constants;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Основной ContentProvider приложения. все действия должны выполняться из batch (кроме query)
@@ -26,24 +24,6 @@ public final class Data extends ContentProvider {
     public static final boolean DEBUG = false;
 
     public static final String TAG = "Data";
-
-    /**
-     * список диалогов, которые были изменены в данной транзакции
-     */
-    private Set<Long> dialogsChanged = new HashSet<Long>();
-
-    /**
-     * Список диалогов, у которых были изменены свойства (название, состав)
-     */
-    private Set<Long> chatsChanged = new HashSet<Long>();
-    private boolean friendsChanged;
-    private boolean searchChanged;
-    private boolean contactsChanged;
-
-    /**
-     * Были ли изменены notifications в транзакции
-     */
-    private boolean notificationsChanged;
 
     public static final String CONTENT_AUTHORITY = Constants.PACKAGE + "db";
     public static final Uri CONTENT_URI_BASE = Uri.parse("content://" + CONTENT_AUTHORITY);
@@ -63,6 +43,8 @@ public final class Data extends ContentProvider {
         final String authority = CONTENT_AUTHORITY;
 
         matcher.addURI(authority, "todo", TODO);
+        matcher.addURI(authority, "todo/*", 2423);
+        matcher.addURI(authority, "task", 2342);
 
         return matcher;
     }
@@ -110,10 +92,6 @@ public final class Data extends ContentProvider {
             Logs.d(TAG, "insert " + uri + ": " + v);
 
         final int match = sUriMatcher.match(uri);
-        if (!db.inTransaction()) {
-            throw new RuntimeException("Operation must be processed through batch");
-        }
-
         switch (match) {
             case TODO: {
                 final Uri retVal = ContentUris.withAppendedId(CONTENT_URI_TODO, db.insert(Tables.TODO, null, v));
